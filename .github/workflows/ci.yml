@@ -23,7 +23,7 @@ jobs:
       matrix:
         php: [8.4]
         kubernetes: [1.33.5, 1.34.1]
-        laravel: [12]
+        laravel: ['12.*']
         prefer: [prefer-lowest, prefer-stable]
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} - K8s v${{ matrix.kubernetes }} --${{ matrix.prefer }}
@@ -38,16 +38,31 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, yaml
           coverage: pcov
 
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Prepare cache key
+        id: prep
+        run: |
+          PHP_VERSION=${{ matrix.php }}
+          LARAVEL_VERSION=${{ matrix.laravel }}
+          PREFER_VERSION=${{ matrix.prefer }}
+          # Remove any .* from the versions
+          LARAVEL_VERSION=${LARAVEL_VERSION//.*}
+          echo "cache-key=composer-php-$PHP_VERSION-$LARAVEL_VERSION-$PREFER_VERSION-${{ hashFiles('composer.json') }}" >> $GITHUB_OUTPUT
+
       - uses: actions/cache@v4
         name: Cache dependencies
         with:
-          path: ~/.composer/cache/files
-          key: composer-php-${{ matrix.php }}-${{ matrix.laravel }}-${{ matrix.prefer }}-${{ hashFiles('composer.json') }}
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ steps.prep.outputs.cache-key }}
 
       - uses: medyagh/setup-minikube@latest
         name: Setup Minikube
         with:
           minikube-version: 1.37.0
+          driver: docker
           container-runtime: containerd
           kubernetes-version: v${{ matrix.kubernetes }}
 

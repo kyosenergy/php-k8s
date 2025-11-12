@@ -3,7 +3,6 @@
 namespace RenokiCo\PhpK8s\Test;
 
 use RenokiCo\PhpK8s\Exceptions\KubernetesAPIException;
-use RenokiCo\PhpK8s\K8s;
 use RenokiCo\PhpK8s\Kinds\K8sDaemonSet;
 use RenokiCo\PhpK8s\Kinds\K8sPod;
 use RenokiCo\PhpK8s\ResourcesList;
@@ -12,26 +11,17 @@ class DaemonSetTest extends TestCase
 {
     public function test_daemon_set_build()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ]);
-
-        $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setContainers([$mysql]);
+        $pod = $this->createMariadbPod();
 
         $ds = $this->cluster->daemonSet()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
             ->setUpdateStrategy('RollingUpdate')
             ->setMinReadySeconds(0)
             ->setTemplate($pod);
 
         $this->assertEquals('apps/v1', $ds->getApiVersion());
-        $this->assertEquals('mysql', $ds->getName());
+        $this->assertEquals('mariadb', $ds->getName());
         $this->assertEquals(['tier' => 'backend'], $ds->getLabels());
         $this->assertEquals(0, $ds->getMinReadySeconds());
         $this->assertEquals($pod->getName(), $ds->getTemplate()->getName());
@@ -41,21 +31,12 @@ class DaemonSetTest extends TestCase
 
     public function test_daemon_set_from_yaml()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ]);
+        $pod = $this->createMariadbPod();
 
-        $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setContainers([$mysql]);
-
-        $ds = $this->cluster->fromYamlFile(__DIR__.'/yaml/daemonset.yaml');
+        $ds = $this->cluster->fromYamlFile(__DIR__ . '/yaml/daemonset.yaml');
 
         $this->assertEquals('apps/v1', $ds->getApiVersion());
-        $this->assertEquals('mysql', $ds->getName());
+        $this->assertEquals('mariadb', $ds->getName());
         $this->assertEquals(['tier' => 'backend'], $ds->getLabels());
         $this->assertEquals($pod->getName(), $ds->getTemplate()->getName());
 
@@ -75,22 +56,16 @@ class DaemonSetTest extends TestCase
 
     public function runCreationTests()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ])
-            ->addPort(3307, 'TCP', 'mysql-alt')
-            ->setEnv(['MYSQL_ROOT_PASSWORD' => 'test']);
-
-        $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setLabels(['tier' => 'backend', 'daemonset-name' => 'mysql'])
-            ->setContainers([$mysql]);
+        $pod = $this->createMariadbPod([
+            'labels' => ['tier' => 'backend', 'daemonset-name' => 'mariadb'],
+            'container' => [
+        'additionalPort' => 3307,
+        'includeEnv' => true,
+            ],
+        ]);
 
         $ds = $this->cluster->daemonSet()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
             ->setSelectors(['matchLabels' => ['tier' => 'backend']])
             ->setUpdateStrategy('RollingUpdate')
@@ -108,7 +83,7 @@ class DaemonSetTest extends TestCase
         $this->assertInstanceOf(K8sDaemonSet::class, $ds);
 
         $this->assertEquals('apps/v1', $ds->getApiVersion());
-        $this->assertEquals('mysql', $ds->getName());
+        $this->assertEquals('mariadb', $ds->getName());
         $this->assertEquals(['tier' => 'backend'], $ds->getLabels());
         $this->assertEquals(0, $ds->getMinReadySeconds());
         $this->assertEquals($pod->getName(), $ds->getTemplate()->getName());
@@ -177,14 +152,14 @@ class DaemonSetTest extends TestCase
 
     public function runGetTests()
     {
-        $ds = $this->cluster->getDaemonSetByName('mysql');
+        $ds = $this->cluster->getDaemonSetByName('mariadb');
 
         $this->assertInstanceOf(K8sDaemonSet::class, $ds);
 
         $this->assertTrue($ds->isSynced());
 
         $this->assertEquals('apps/v1', $ds->getApiVersion());
-        $this->assertEquals('mysql', $ds->getName());
+        $this->assertEquals('mariadb', $ds->getName());
         $this->assertEquals(['tier' => 'backend'], $ds->getLabels());
 
         $this->assertInstanceOf(K8sPod::class, $ds->getTemplate());
@@ -192,7 +167,7 @@ class DaemonSetTest extends TestCase
 
     public function runUpdateTests()
     {
-        $ds = $this->cluster->getDaemonSetByName('mysql');
+        $ds = $this->cluster->getDaemonSetByName('mariadb');
 
         $this->assertTrue($ds->isSynced());
 
@@ -201,7 +176,7 @@ class DaemonSetTest extends TestCase
         $this->assertTrue($ds->isSynced());
 
         $this->assertEquals('apps/v1', $ds->getApiVersion());
-        $this->assertEquals('mysql', $ds->getName());
+        $this->assertEquals('mariadb', $ds->getName());
         $this->assertEquals(['tier' => 'backend'], $ds->getLabels());
 
         $this->assertInstanceOf(K8sPod::class, $ds->getTemplate());
@@ -209,7 +184,7 @@ class DaemonSetTest extends TestCase
 
     public function runDeletionTests()
     {
-        $ds = $this->cluster->getDaemonSetByName('mysql');
+        $ds = $this->cluster->getDaemonSetByName('mariadb');
 
         $this->assertTrue($ds->delete());
 
@@ -225,13 +200,13 @@ class DaemonSetTest extends TestCase
 
         $this->expectException(KubernetesAPIException::class);
 
-        $this->cluster->getDaemonSetByName('mysql');
+        $this->cluster->getDaemonSetByName('mariadb');
     }
 
     public function runWatchAllTests()
     {
         $watch = $this->cluster->daemonSet()->watchAll(function ($type, $ds) {
-            if ($ds->getName() === 'mysql') {
+            if ($ds->getName() === 'mariadb') {
                 return true;
             }
         }, ['timeoutSeconds' => 10]);
@@ -241,8 +216,8 @@ class DaemonSetTest extends TestCase
 
     public function runWatchTests()
     {
-        $watch = $this->cluster->daemonSet()->watchByName('mysql', function ($type, $ds) {
-            return $ds->getName() === 'mysql';
+        $watch = $this->cluster->daemonSet()->watchByName('mariadb', function ($type, $ds) {
+            return $ds->getName() === 'mariadb';
         }, ['timeoutSeconds' => 10]);
 
         $this->assertTrue($watch);
