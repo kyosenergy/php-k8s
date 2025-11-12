@@ -27,7 +27,7 @@ class StorageClassTest extends TestCase
 
     public function test_storage_class_from_yaml()
     {
-        $sc = $this->cluster->fromYamlFile(__DIR__.'/yaml/storageclass.yaml');
+        $sc = $this->cluster->fromYamlFile(__DIR__ . '/yaml/storageclass.yaml');
 
         $this->assertEquals('storage.k8s.io/v1', $sc->getApiVersion());
         $this->assertEquals('io1', $sc->getName());

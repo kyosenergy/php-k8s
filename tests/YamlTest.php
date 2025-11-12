@@ -10,7 +10,7 @@ class YamlTest extends TestCase
 {
     public function test_yaml_import_multiple_kinds_in_same_file()
     {
-        $instances = $this->cluster->fromYamlFile(__DIR__.'/yaml/configmap_and_secret.yaml');
+        $instances = $this->cluster->fromYamlFile(__DIR__ . '/yaml/configmap_and_secret.yaml');
 
         [$cm, $secret] = $instances;
 
@@ -26,7 +26,7 @@ class YamlTest extends TestCase
 
     public function test_yaml_import_with_handler()
     {
-        $cm = $this->cluster->fromYamlFile(__DIR__.'/yaml/configmap_with_placeholder.yaml', function ($content) {
+        $cm = $this->cluster->fromYamlFile(__DIR__ . '/yaml/configmap_with_placeholder.yaml', function ($content) {
             return str_replace('{value}', 'assigned_value', $content);
         });
 
@@ -42,7 +42,7 @@ class YamlTest extends TestCase
             'value2' => 'not_assigned',
         ];
 
-        $cm = $this->cluster->fromTemplatedYamlFile(__DIR__.'/yaml/configmap_with_placeholder.yaml', $replacements);
+        $cm = $this->cluster->fromTemplatedYamlFile(__DIR__ . '/yaml/configmap_with_placeholder.yaml', $replacements);
 
         $this->assertEquals('v1', $cm->getApiVersion());
         $this->assertEquals('settings', $cm->getName());
@@ -125,10 +125,10 @@ class YamlTest extends TestCase
     {
         SealedSecret::register('sealedSecret');
 
-        $ss = $this->cluster->fromYamlFile(__DIR__.'/yaml/sealedsecret.yaml');
+        $ss = $this->cluster->fromYamlFile(__DIR__ . '/yaml/sealedsecret.yaml');
         $ss->createOrUpdate();
 
-        $ss = $this->cluster->fromYamlFile(__DIR__.'/yaml/sealedsecret.yaml');
+        $ss = $this->cluster->fromYamlFile(__DIR__ . '/yaml/sealedsecret.yaml');
         $ss->createOrUpdate();
 
         $this->assertInstanceOf(SealedSecret::class, $ss);

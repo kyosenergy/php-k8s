@@ -63,7 +63,7 @@ class IngressTest extends TestCase
 
     public function test_ingress_from_yaml_post()
     {
-        $ing = $this->cluster->fromYamlFile(__DIR__.'/yaml/ingress.yaml');
+        $ing = $this->cluster->fromYamlFile(__DIR__ . '/yaml/ingress.yaml');
 
         $this->assertEquals('networking.k8s.io/v1', $ing->getApiVersion());
         $this->assertEquals('nginx', $ing->getName());

@@ -37,7 +37,7 @@ class PersistentVolumeTest extends TestCase
 
     public function test_persistent_volume_from_yaml()
     {
-        $pv = $this->cluster->fromYamlFile(__DIR__.'/yaml/persistentvolume.yaml');
+        $pv = $this->cluster->fromYamlFile(__DIR__ . '/yaml/persistentvolume.yaml');
 
         $this->assertEquals('v1', $pv->getApiVersion());
         $this->assertEquals('app', $pv->getName());

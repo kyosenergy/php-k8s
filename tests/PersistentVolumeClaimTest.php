@@ -29,7 +29,7 @@ class PersistentVolumeClaimTest extends TestCase
 
     public function test_persistent_volume_claim_from_yaml()
     {
-        $pvc = $this->cluster->fromYamlFile(__DIR__.'/yaml/persistentvolumeclaim.yaml');
+        $pvc = $this->cluster->fromYamlFile(__DIR__ . '/yaml/persistentvolumeclaim.yaml');
 
         $this->assertEquals('v1', $pvc->getApiVersion());
         $this->assertEquals('app-pvc', $pvc->getName());

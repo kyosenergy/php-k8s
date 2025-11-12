@@ -43,7 +43,7 @@ class K8sPersistentVolumeClaim extends K8sResource implements InteractsWithK8sCl
      */
     public function setCapacity(int $size, string $measure = 'Gi')
     {
-        return $this->setSpec('resources.requests.storage', $size.$measure);
+        return $this->setSpec('resources.requests.storage', $size . $measure);
     }
 
     /**

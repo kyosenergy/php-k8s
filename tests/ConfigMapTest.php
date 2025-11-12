@@ -27,7 +27,7 @@ class ConfigMapTest extends TestCase
 
     public function test_config_map_from_yaml()
     {
-        $cm = $this->cluster->fromYamlFile(__DIR__.'/yaml/configmap.yaml');
+        $cm = $this->cluster->fromYamlFile(__DIR__ . '/yaml/configmap.yaml');
 
         $this->assertEquals('v1', $cm->getApiVersion());
         $this->assertEquals('settings', $cm->getName());

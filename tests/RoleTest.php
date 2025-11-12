@@ -37,7 +37,7 @@ class RoleTest extends TestCase
             ->addResourceNames(['pod-name', 'configmap-name'])
             ->addVerbs(['get', 'list', 'watch']);
 
-        $role = $this->cluster->fromYamlFile(__DIR__.'/yaml/role.yaml');
+        $role = $this->cluster->fromYamlFile(__DIR__ . '/yaml/role.yaml');
 
         $this->assertEquals('rbac.authorization.k8s.io/v1', $role->getApiVersion());
         $this->assertEquals('admin', $role->getName());

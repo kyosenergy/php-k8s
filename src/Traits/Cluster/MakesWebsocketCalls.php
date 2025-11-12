@@ -54,7 +54,7 @@ trait MakesWebsocketCalls
         if ($this->token) {
             $headers['Authorization'] = "Bearer {$this->token}";
         } elseif ($this->auth) {
-            $headers['Authorization'] = 'Basic '.base64_encode(implode(':', $this->auth));
+            $headers['Authorization'] = 'Basic ' . base64_encode(implode(':', $this->auth));
         }
 
         if ($this->cert) {
@@ -111,7 +111,7 @@ trait MakesWebsocketCalls
         if ($this->token) {
             $headers[] = "Authorization: Bearer {$this->token}";
         } elseif ($this->auth) {
-            $headers[] = 'Authorization: Basic '.base64_encode(implode(':', $this->auth));
+            $headers[] = 'Authorization: Basic ' . base64_encode(implode(':', $this->auth));
         }
 
         if ($this->cert) {

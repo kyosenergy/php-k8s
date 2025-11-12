@@ -47,7 +47,7 @@ trait LoadsFromKubeConfig
     public static function fromKubeConfigVariable(string $context = null)
     {
         /** @var \RenokiCo\PhpK8s\KubernetesCluster $this */
-        $cluster = new static;
+        $cluster = new static();
 
         if (! isset($_SERVER['KUBECONFIG'])) {
             return $cluster;
@@ -85,7 +85,7 @@ trait LoadsFromKubeConfig
     public static function fromKubeConfigYaml(string $yaml, string $context = null)
     {
         /** @var \RenokiCo\PhpK8s\KubernetesCluster $this */
-        $cluster = new static;
+        $cluster = new static();
 
         return $cluster->loadKubeConfigFromArray(yaml_parse($yaml), $context);
     }
@@ -99,7 +99,7 @@ trait LoadsFromKubeConfig
      */
     public static function fromKubeConfigYamlFile(string $path = '/.kube/config', string $context = null)
     {
-        return (new static)->fromKubeConfigYaml(file_get_contents($path), $context);
+        return (new static())->fromKubeConfigYaml(file_get_contents($path), $context);
     }
 
     /**
@@ -111,7 +111,7 @@ trait LoadsFromKubeConfig
      */
     public static function fromKubeConfigArray(array $kubeConfigArray, string $context = null)
     {
-        $cluster = new static;
+        $cluster = new static();
 
         return $cluster->loadKubeConfigFromArray($kubeConfigArray, $context);
     }
@@ -258,7 +258,7 @@ trait LoadsFromKubeConfig
         /** @var \RenokiCo\PhpK8s\KubernetesCluster $this */
         $tempFolder = static::$tempFolder ?: sys_get_temp_dir();
 
-        $tempFilePath = $tempFolder.DIRECTORY_SEPARATOR.Str::slug("ctx-{$context}-{$userName}-{$url}")."-{$fileName}";
+        $tempFilePath = $tempFolder . DIRECTORY_SEPARATOR . Str::slug("ctx-{$context}-{$userName}-{$url}") . "-{$fileName}";
 
         if (file_exists($tempFilePath)) {
             return $tempFilePath;

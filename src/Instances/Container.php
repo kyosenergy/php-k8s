@@ -13,7 +13,7 @@ class Container extends Instance
      */
     public function setImage(string $image, string $tag = 'latest')
     {
-        return $this->setAttribute('image', $image.':'.$tag);
+        return $this->setAttribute('image', $image . ':' . $tag);
     }
 
     /**
@@ -264,7 +264,7 @@ class Container extends Instance
      */
     public function minMemory(int $size, string $measure = 'Gi')
     {
-        return $this->setAttribute('resources.requests.memory', $size.$measure);
+        return $this->setAttribute('resources.requests.memory', $size . $measure);
     }
 
     /**
@@ -307,7 +307,7 @@ class Container extends Instance
      */
     public function maxMemory(int $size, string $measure = 'Gi')
     {
-        return $this->setAttribute('resources.limits.memory', $size.$measure);
+        return $this->setAttribute('resources.limits.memory', $size . $measure);
     }
 
     /**

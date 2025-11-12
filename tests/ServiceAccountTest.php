@@ -35,7 +35,7 @@ class ServiceAccountTest extends TestCase
             ->setLabels(['tier' => 'backend'])
             ->addData('postgres', 'postgres');
 
-        $sa = $this->cluster->fromYamlFile(__DIR__.'/yaml/serviceaccount.yaml');
+        $sa = $this->cluster->fromYamlFile(__DIR__ . '/yaml/serviceaccount.yaml');
 
         $this->assertEquals('v1', $sa->getApiVersion());
         $this->assertEquals('user1', $sa->getName());

@@ -50,7 +50,7 @@ class K8sPersistentVolume extends K8sResource implements InteractsWithK8sCluster
      */
     public function setCapacity(int $size, string $measure = 'Gi')
     {
-        return $this->setSpec('capacity.storage', $size.$measure);
+        return $this->setSpec('capacity.storage', $size . $measure);
     }
 
     /**

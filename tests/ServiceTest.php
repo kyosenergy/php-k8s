@@ -28,7 +28,7 @@ class ServiceTest extends TestCase
 
     public function test_service_from_yaml()
     {
-        $svc = $this->cluster->fromYamlFile(__DIR__.'/yaml/service.yaml');
+        $svc = $this->cluster->fromYamlFile(__DIR__ . '/yaml/service.yaml');
 
         $this->assertEquals('v1', $svc->getApiVersion());
         $this->assertEquals('nginx', $svc->getName());
