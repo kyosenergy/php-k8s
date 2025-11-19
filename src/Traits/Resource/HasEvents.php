@@ -15,7 +15,7 @@ trait HasEvents
         return $this->cluster
             ->event()
             ->setResource($this)
-            ->setName($this->getName().'.'.bin2hex(random_bytes(10)));
+            ->setName($this->getName() . '.' . bin2hex(random_bytes(10)));
     }
 
     /**

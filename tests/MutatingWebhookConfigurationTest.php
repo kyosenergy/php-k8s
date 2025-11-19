@@ -41,7 +41,7 @@ class MutatingWebhookConfigurationTest extends TestCase
 
     public function test_mutation_webhook_from_yaml()
     {
-        $mutatingWebhookConfiguration = $this->cluster->fromYamlFile(__DIR__.'/yaml/mutatingwebhookconfiguration.yaml');
+        $mutatingWebhookConfiguration = $this->cluster->fromYamlFile(__DIR__ . '/yaml/mutatingwebhookconfiguration.yaml');
 
         $this->assertEquals('admissionregistration.k8s.io/v1', $mutatingWebhookConfiguration->getApiVersion());
         $this->assertEquals('ingress-mutation-webhook', $mutatingWebhookConfiguration->getName());

@@ -58,7 +58,7 @@ class RoleBindingTest extends TestCase
             ->setKind('User')
             ->setName('user-1');
 
-        $rb = $this->cluster->fromYamlFile(__DIR__.'/yaml/rolebinding.yaml');
+        $rb = $this->cluster->fromYamlFile(__DIR__ . '/yaml/rolebinding.yaml');
 
         $this->assertEquals('rbac.authorization.k8s.io/v1', $rb->getApiVersion());
         $this->assertEquals('user-binding', $rb->getName());

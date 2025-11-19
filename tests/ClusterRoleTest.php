@@ -37,7 +37,7 @@ class ClusterRoleTest extends TestCase
             ->addResourceNames(['pod-name', 'configmap-name'])
             ->addVerbs(['get', 'list', 'watch']);
 
-        $cr = $this->cluster->fromYamlFile(__DIR__.'/yaml/clusterrole.yaml');
+        $cr = $this->cluster->fromYamlFile(__DIR__ . '/yaml/clusterrole.yaml');
 
         $this->assertEquals('rbac.authorization.k8s.io/v1', $cr->getApiVersion());
         $this->assertEquals('admin-cr', $cr->getName());

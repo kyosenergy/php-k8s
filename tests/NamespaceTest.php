@@ -21,7 +21,7 @@ class NamespaceTest extends TestCase
 
     public function test_namespace_from_yaml()
     {
-        $ns = $this->cluster->fromYamlFile(__DIR__.'/yaml/namespace.yaml');
+        $ns = $this->cluster->fromYamlFile(__DIR__ . '/yaml/namespace.yaml');
 
         $this->assertEquals('v1', $ns->getApiVersion());
         $this->assertEquals('production', $ns->getName());

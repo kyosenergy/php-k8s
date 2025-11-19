@@ -3,7 +3,6 @@
 namespace RenokiCo\PhpK8s\Test;
 
 use RenokiCo\PhpK8s\Exceptions\KubernetesAPIException;
-use RenokiCo\PhpK8s\K8s;
 use RenokiCo\PhpK8s\Kinds\K8sDeployment;
 use RenokiCo\PhpK8s\Kinds\K8sPodDisruptionBudget;
 use RenokiCo\PhpK8s\ResourcesList;
@@ -13,39 +12,39 @@ class PodDisruptionBudgetTest extends TestCase
     public function test_pod_disruption_budget_build()
     {
         $pdb = $this->cluster->podDisruptionBudget()
-            ->setName('mysql-pdb')
+            ->setName('mariadb-pdb')
             ->setSelectors(['matchLabels' => ['tier' => 'backend']])
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setMinAvailable(1)
             ->setMaxUnavailable('25%');
 
         $this->assertEquals('policy/v1', $pdb->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb->getName());
+        $this->assertEquals('mariadb-pdb', $pdb->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb->getAnnotations());
         $this->assertEquals('25%', $pdb->getMaxUnavailable());
         $this->assertEquals(null, $pdb->getMinAvailable());
     }
 
     public function test_pod_disruption_budget_from_yaml()
     {
-        [$pdb1, $pdb2] = $this->cluster->fromYamlFile(__DIR__.'/yaml/pdb.yaml');
+        [$pdb1, $pdb2] = $this->cluster->fromYamlFile(__DIR__ . '/yaml/pdb.yaml');
 
         $this->assertEquals('policy/v1', $pdb1->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb1->getName());
+        $this->assertEquals('mariadb-pdb', $pdb1->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb1->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb1->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb1->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb1->getAnnotations());
         $this->assertEquals('25%', $pdb1->getMaxUnavailable());
         $this->assertEquals(null, $pdb1->getMinAvailable());
 
         $this->assertEquals('policy/v1', $pdb2->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb2->getName());
+        $this->assertEquals('mariadb-pdb', $pdb2->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb2->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb2->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb2->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb2->getAnnotations());
         $this->assertEquals(null, $pdb2->getMaxUnavailable());
         $this->assertEquals('25%', $pdb2->getMinAvailable());
     }
@@ -63,24 +62,20 @@ class PodDisruptionBudgetTest extends TestCase
 
     public function runCreationTests()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ])
-            ->addPort(3307, 'TCP', 'mysql-alt')
-            ->setEnv(['MYSQL_ROOT_PASSWORD' => 'test']);
+        $mariadb = $this->createMariadbContainer([
+            'env' => ['MARIADB_ROOT_PASSWORD' => 'test'],
+            'additionalPort' => 3307,
+        ]);
 
         $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setLabels(['tier' => 'backend', 'deployment-name' => 'mysql'])
-            ->setContainers([$mysql]);
+            ->setName('mariadb')
+            ->setLabels(['tier' => 'backend', 'deployment-name' => 'mariadb'])
+            ->setContainers([$mariadb]);
 
         $dep = $this->cluster->deployment()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setSelectors(['matchLabels' => ['tier' => 'backend']])
             ->setReplicas(1)
             ->setUpdateStrategy('RollingUpdate')
@@ -88,10 +83,10 @@ class PodDisruptionBudgetTest extends TestCase
             ->setTemplate($pod);
 
         $pdb = $this->cluster->podDisruptionBudget()
-            ->setName('mysql-pdb')
+            ->setName('mariadb-pdb')
             ->setSelectors(['matchLabels' => ['tier' => 'backend']])
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setMinAvailable(1)
             ->setMaxUnavailable('25%');
 
@@ -108,10 +103,10 @@ class PodDisruptionBudgetTest extends TestCase
         $this->assertInstanceOf(K8sPodDisruptionBudget::class, $pdb);
 
         $this->assertEquals('policy/v1', $pdb->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb->getName());
+        $this->assertEquals('mariadb-pdb', $pdb->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb->getAnnotations());
         $this->assertEquals('25%', $pdb->getMaxUnavailable());
         $this->assertEquals(null, $pdb->getMinAvailable());
 
@@ -136,17 +131,17 @@ class PodDisruptionBudgetTest extends TestCase
 
     public function runGetTests()
     {
-        $pdb = $this->cluster->getPodDisruptionBudgetByName('mysql-pdb');
+        $pdb = $this->cluster->getPodDisruptionBudgetByName('mariadb-pdb');
 
         $this->assertInstanceOf(K8sPodDisruptionBudget::class, $pdb);
 
         $this->assertTrue($pdb->isSynced());
 
         $this->assertEquals('policy/v1', $pdb->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb->getName());
+        $this->assertEquals('mariadb-pdb', $pdb->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb->getAnnotations());
         $this->assertEquals('25%', $pdb->getMaxUnavailable());
         $this->assertEquals(null, $pdb->getMinAvailable());
     }
@@ -156,7 +151,7 @@ class PodDisruptionBudgetTest extends TestCase
         $backoff = 0;
         do {
             try {
-                $pdb = $this->cluster->getPodDisruptionBudgetByName('mysql-pdb')->setMinAvailable('25%')->createOrUpdate();
+                $pdb = $this->cluster->getPodDisruptionBudgetByName('mariadb-pdb')->setMinAvailable('25%')->createOrUpdate();
             } catch (KubernetesAPIException $e) {
                 if ($e->getCode() == 409) {
                     sleep(2 * $backoff);
@@ -173,17 +168,17 @@ class PodDisruptionBudgetTest extends TestCase
         $this->assertTrue($pdb->isSynced());
 
         $this->assertEquals('policy/v1', $pdb->getApiVersion());
-        $this->assertEquals('mysql-pdb', $pdb->getName());
+        $this->assertEquals('mariadb-pdb', $pdb->getName());
         $this->assertEquals(['matchLabels' => ['tier' => 'backend']], $pdb->getSelectors());
         $this->assertEquals(['tier' => 'backend'], $pdb->getLabels());
-        $this->assertEquals(['mysql/annotation' => 'yes'], $pdb->getAnnotations());
+        $this->assertEquals(['mariadb/annotation' => 'yes'], $pdb->getAnnotations());
         $this->assertEquals(null, $pdb->getMaxUnavailable());
         $this->assertEquals('25%', $pdb->getMinAvailable());
     }
 
     public function runDeletionTests()
     {
-        $pdb = $this->cluster->getPodDisruptionBudgetByName('mysql-pdb');
+        $pdb = $this->cluster->getPodDisruptionBudgetByName('mariadb-pdb');
 
         $this->assertTrue($pdb->delete());
 
@@ -194,13 +189,13 @@ class PodDisruptionBudgetTest extends TestCase
 
         $this->expectException(KubernetesAPIException::class);
 
-        $this->cluster->getPodDisruptionBudgetByName('mysql-pdb');
+        $this->cluster->getPodDisruptionBudgetByName('mariadb-pdb');
     }
 
     public function runWatchAllTests()
     {
         $watch = $this->cluster->podDisruptionBudget()->watchAll(function ($type, $pdb) {
-            if ($pdb->getName() === 'mysql-pdb') {
+            if ($pdb->getName() === 'mariadb-pdb') {
                 return true;
             }
         }, ['timeoutSeconds' => 10]);
@@ -210,8 +205,8 @@ class PodDisruptionBudgetTest extends TestCase
 
     public function runWatchTests()
     {
-        $watch = $this->cluster->podDisruptionBudget()->watchByName('mysql-pdb', function ($type, $pdb) {
-            return $pdb->getName() === 'mysql-pdb';
+        $watch = $this->cluster->podDisruptionBudget()->watchByName('mariadb-pdb', function ($type, $pdb) {
+            return $pdb->getName() === 'mariadb-pdb';
         }, ['timeoutSeconds' => 10]);
 
         $this->assertTrue($watch);

@@ -54,7 +54,7 @@ trait MakesWebsocketCalls
         if ($this->token) {
             $headers['Authorization'] = "Bearer {$this->token}";
         } elseif ($this->auth) {
-            $headers['Authorization'] = 'Basic '.base64_encode(implode(':', $this->auth));
+            $headers['Authorization'] = 'Basic ' . base64_encode(implode(':', $this->auth));
         }
 
         if ($this->cert) {
@@ -111,7 +111,7 @@ trait MakesWebsocketCalls
         if ($this->token) {
             $headers[] = "Authorization: Bearer {$this->token}";
         } elseif ($this->auth) {
-            $headers[] = 'Authorization: Basic '.base64_encode(implode(':', $this->auth));
+            $headers[] = 'Authorization: Basic ' . base64_encode(implode(':', $this->auth));
         }
 
         if ($this->cert) {
@@ -143,7 +143,7 @@ trait MakesWebsocketCalls
      * @param  array  $query
      * @return mixed
      */
-    protected function makeWsRequest(string $path, Closure $callback = null, array $query = ['pretty' => 1])
+    protected function makeWsRequest(string $path, ?Closure $callback = null, array $query = ['pretty' => 1])
     {
         $url = $this->getCallableUrl($path, $query);
 

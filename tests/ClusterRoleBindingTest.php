@@ -60,7 +60,7 @@ class ClusterRoleBindingTest extends TestCase
             ->setKind('User')
             ->setName('user-1');
 
-        $crb = $this->cluster->fromYamlFile(__DIR__.'/yaml/clusterrolebinding.yaml');
+        $crb = $this->cluster->fromYamlFile(__DIR__ . '/yaml/clusterrolebinding.yaml');
 
         $this->assertEquals('rbac.authorization.k8s.io/v1', $crb->getApiVersion());
         $this->assertEquals('user-binding', $crb->getName());

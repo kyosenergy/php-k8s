@@ -28,7 +28,7 @@ class SecretTest extends TestCase
 
     public function test_secret_from_yaml()
     {
-        $secret = $this->cluster->fromYamlFile(__DIR__.'/yaml/secret.yaml');
+        $secret = $this->cluster->fromYamlFile(__DIR__ . '/yaml/secret.yaml');
 
         $this->assertEquals('v1', $secret->getApiVersion());
         $this->assertEquals('passwords', $secret->getName());

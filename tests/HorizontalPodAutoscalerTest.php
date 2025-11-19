@@ -13,28 +13,23 @@ class HorizontalPodAutoscalerTest extends TestCase
 {
     public function test_horizontal_pod_autoscaler_build()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ]);
+        $mariadb = $this->createMariadbContainer();
 
         $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setContainers([$mysql]);
+            ->setName('mariadb')
+            ->setContainers([$mariadb]);
 
         $dep = $this->cluster->deployment()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setReplicas(3)
             ->setTemplate($pod);
 
         $cpuMetric = K8s::metric()->cpu()->averageUtilization(70);
 
         $hpa = $this->cluster->horizontalPodAutoscaler()
-            ->setName('mysql-hpa')
+            ->setName('mariadb-hpa')
             ->setLabels(['tier' => 'backend'])
             ->setResource($dep)
             ->addMetrics([$cpuMetric])
@@ -43,7 +38,7 @@ class HorizontalPodAutoscalerTest extends TestCase
             ->max(10);
 
         $this->assertEquals('autoscaling/v2', $hpa->getApiVersion());
-        $this->assertEquals('mysql-hpa', $hpa->getName());
+        $this->assertEquals('mariadb-hpa', $hpa->getName());
         $this->assertEquals(['tier' => 'backend'], $hpa->getLabels());
         $this->assertEquals([$cpuMetric->toArray()], $hpa->getMetrics());
         $this->assertEquals(1, $hpa->getMinReplicas());
@@ -52,30 +47,25 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function test_horizontal_pod_autoscaler_from_yaml()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ]);
+        $mariadb = $this->createMariadbContainer();
 
         $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setContainers([$mysql]);
+            ->setName('mariadb')
+            ->setContainers([$mariadb]);
 
         $dep = $this->cluster->deployment()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setReplicas(3)
             ->setTemplate($pod);
 
         $cpuMetric = K8s::metric()->cpu()->averageUtilization(70);
 
-        $hpa = $this->cluster->fromYamlFile(__DIR__.'/yaml/hpa.yaml');
+        $hpa = $this->cluster->fromYamlFile(__DIR__ . '/yaml/hpa.yaml');
 
         $this->assertEquals('autoscaling/v2', $hpa->getApiVersion());
-        $this->assertEquals('mysql-hpa', $hpa->getName());
+        $this->assertEquals('mariadb-hpa', $hpa->getName());
         $this->assertEquals(['tier' => 'backend'], $hpa->getLabels());
         $this->assertEquals([$cpuMetric->toArray()], $hpa->getMetrics());
         $this->assertEquals(1, $hpa->getMinReplicas());
@@ -95,24 +85,20 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function runCreationTests()
     {
-        $mysql = K8s::container()
-            ->setName('mysql')
-            ->setImage('public.ecr.aws/docker/library/mysql', '5.7')
-            ->setPorts([
-                ['name' => 'mysql', 'protocol' => 'TCP', 'containerPort' => 3306],
-            ])
-            ->addPort(3307, 'TCP', 'mysql-alt')
-            ->setEnv(['MYSQL_ROOT_PASSWORD' => 'test']);
+        $mariadb = $this->createMariadbContainer([
+            'includeEnv' => true,
+            'additionalPort' => 3307,
+        ]);
 
         $pod = $this->cluster->pod()
-            ->setName('mysql')
-            ->setLabels(['tier' => 'backend', 'deployment-name' => 'mysql'])
-            ->setContainers([$mysql]);
+            ->setName('mariadb')
+            ->setLabels(['tier' => 'backend', 'deployment-name' => 'mariadb'])
+            ->setContainers([$mariadb]);
 
         $dep = $this->cluster->deployment()
-            ->setName('mysql')
+            ->setName('mariadb')
             ->setLabels(['tier' => 'backend'])
-            ->setAnnotations(['mysql/annotation' => 'yes'])
+            ->setAnnotations(['mariadb/annotation' => 'yes'])
             ->setSelectors(['matchLabels' => ['tier' => 'backend']])
             ->setReplicas(1)
             ->setUpdateStrategy('RollingUpdate')
@@ -122,7 +108,7 @@ class HorizontalPodAutoscalerTest extends TestCase
         $cpuMetric = K8s::metric()->cpu()->averageUtilization(70);
 
         $hpa = $this->cluster->horizontalPodAutoscaler()
-            ->setName('mysql-hpa')
+            ->setName('mariadb-hpa')
             ->setLabels(['tier' => 'backend'])
             ->setResource($dep)
             ->addMetrics([$cpuMetric])
@@ -142,7 +128,7 @@ class HorizontalPodAutoscalerTest extends TestCase
         $this->assertInstanceOf(K8sHorizontalPodAutoscaler::class, $hpa);
 
         $this->assertEquals('autoscaling/v2', $hpa->getApiVersion());
-        $this->assertEquals('mysql-hpa', $hpa->getName());
+        $this->assertEquals('mariadb-hpa', $hpa->getName());
         $this->assertEquals(['tier' => 'backend'], $hpa->getLabels());
         $this->assertEquals([$cpuMetric->toArray()], $hpa->getMetrics());
         $this->assertEquals(1, $hpa->getMinReplicas());
@@ -195,7 +181,7 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function runGetTests()
     {
-        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mysql-hpa');
+        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mariadb-hpa');
 
         $this->assertInstanceOf(K8sHorizontalPodAutoscaler::class, $hpa);
 
@@ -204,7 +190,7 @@ class HorizontalPodAutoscalerTest extends TestCase
         $cpuMetric = K8s::metric()->cpu()->averageUtilization(70);
 
         $this->assertEquals('autoscaling/v2', $hpa->getApiVersion());
-        $this->assertEquals('mysql-hpa', $hpa->getName());
+        $this->assertEquals('mariadb-hpa', $hpa->getName());
         $this->assertEquals(['tier' => 'backend'], $hpa->getLabels());
         $this->assertEquals([$cpuMetric->toArray()], $hpa->getMetrics());
         $this->assertEquals(1, $hpa->getMinReplicas());
@@ -213,7 +199,7 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function runUpdateTests()
     {
-        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mysql-hpa');
+        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mariadb-hpa');
 
         $this->assertTrue($hpa->isSynced());
 
@@ -232,7 +218,7 @@ class HorizontalPodAutoscalerTest extends TestCase
         $cpuMetric = K8s::metric()->cpu()->averageUtilization(70);
 
         $this->assertEquals('autoscaling/v2', $hpa->getApiVersion());
-        $this->assertEquals('mysql-hpa', $hpa->getName());
+        $this->assertEquals('mariadb-hpa', $hpa->getName());
         $this->assertEquals(['tier' => 'backend'], $hpa->getLabels());
         $this->assertEquals([$cpuMetric->toArray()], $hpa->getMetrics());
         $this->assertEquals(1, $hpa->getMinReplicas());
@@ -241,7 +227,7 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function runDeletionTests()
     {
-        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mysql-hpa');
+        $hpa = $this->cluster->getHorizontalPodAutoscalerByName('mariadb-hpa');
 
         $this->assertTrue($hpa->delete());
 
@@ -252,13 +238,13 @@ class HorizontalPodAutoscalerTest extends TestCase
 
         $this->expectException(KubernetesAPIException::class);
 
-        $this->cluster->getHorizontalPodAutoscalerByName('mysql-hpa');
+        $this->cluster->getHorizontalPodAutoscalerByName('mariadb-hpa');
     }
 
     public function runWatchAllTests()
     {
         $watch = $this->cluster->horizontalPodAutoscaler()->watchAll(function ($type, $hpa) {
-            if ($hpa->getName() === 'mysql-hpa') {
+            if ($hpa->getName() === 'mariadb-hpa') {
                 return true;
             }
         }, ['timeoutSeconds' => 10]);
@@ -268,8 +254,8 @@ class HorizontalPodAutoscalerTest extends TestCase
 
     public function runWatchTests()
     {
-        $watch = $this->cluster->horizontalPodAutoscaler()->watchByName('mysql-hpa', function ($type, $hpa) {
-            return $hpa->getName() === 'mysql-hpa';
+        $watch = $this->cluster->horizontalPodAutoscaler()->watchByName('mariadb-hpa', function ($type, $hpa) {
+            return $hpa->getName() === 'mariadb-hpa';
         }, ['timeoutSeconds' => 10]);
 
         $this->assertTrue($watch);

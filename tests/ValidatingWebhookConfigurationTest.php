@@ -41,7 +41,7 @@ class ValidatingWebhookConfigurationTest extends TestCase
 
     public function test_validation_webhook_from_yaml()
     {
-        $validatingWebhookConfiguration = $this->cluster->fromYamlFile(__DIR__.'/yaml/validatingwebhookconfiguration.yaml');
+        $validatingWebhookConfiguration = $this->cluster->fromYamlFile(__DIR__ . '/yaml/validatingwebhookconfiguration.yaml');
 
         $this->assertEquals('admissionregistration.k8s.io/v1', $validatingWebhookConfiguration->getApiVersion());
         $this->assertEquals('ingress-validation-webhook', $validatingWebhookConfiguration->getName());
